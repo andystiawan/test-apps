@@ -27,6 +27,22 @@ function Home(){
 			searchData(e.target.value);
 		}
 	};
+	window.onscroll = () => {
+		if (height + document.documentElement.scrollTop >= document.documentElement.scrollHeight){
+			if(!state.noMoreData){
+				fetchMoreData();
+			}
+		};
+	};
+	const fetchMoreData = async () => {
+		try {
+			setState(p=>({...p,loadingMore: true, limit: state.limit + 10}));
+			await getList();
+			setState(p=>({...p,loadingMore: false}));
+		} catch (error) {
+			console.log(error);
+		}
+	};
 	const getList = async() =>{
 		try {
 			await axios.get(PATH_LIST_CAT + state.limit)
@@ -35,23 +51,16 @@ function Home(){
 					list_cat: res.data,
 					loading: false
 				}));
-				if(state.limit > 10 && state.list_cat === res.data){
-					setState(prev => ({...prev, 
-						noMoreData: true
-					}))
-				};
+				if(state.limit > 30 && 
+					res.data.length === 
+					state.list_cat.length 
+					){
+					setState(prev => ({...prev,noMoreData: true}))
+				}
 			});
 		} catch (error) {
 			console.log(error);
 		}
-	};
-	window.onscroll = () => {
-		if (height + document.documentElement.scrollTop > 
-				document.documentElement.scrollHeight){
-			if(!state.noMoreData){
-				fetchMoreData();
-			}
-		};
 	};
 	const searchData = async(data) => {
 		try {
@@ -76,15 +85,7 @@ function Home(){
 			getList();
 		}
 	});
-	const fetchMoreData = async () => {
-		try {
-			setState(p=>({...p,loadingMore: true, limit: state.limit + 10}));
-			await getList();
-			setState(p=>({...p,loadingMore: false}));
-		} catch (error) {
-			console.log(error);
-		}
-	};
+	
 	return(
 		<div className="container" style={{height: height}}>
 			<div className="search-cat">
